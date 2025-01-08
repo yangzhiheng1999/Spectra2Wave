@@ -17,12 +17,12 @@ import numpy as np
 import matplotlib.pyplot  as plt
 
 class class_wave:
-    def __init__(self, wave_height, wave_period, gamma):    # 初始化波浪对象
+    def __init__(self, wave_height, wave_period, gamma=3.3):    # 初始化波浪对象
         self.Hs = wave_height
         self.Tp = wave_period
         self.gamma = gamma
 
-    def jonswap(self, frequence:np.array):   # 计算jonswap谱
+    def jonswap(self, frequence: np.array):   # 计算jonswap谱
         # 波浪谱参数
         Hs = self.Hs
         Tp = self.Tp
@@ -34,16 +34,16 @@ class class_wave:
         sigma = np.where(condition, 0.07, 0.09)
 
         # 计算波浪谱
-        self.S = beta * Hs**2 * Tp**(-4) * frequence**(-5) * \
+        Spec = beta * Hs**2 * Tp**(-4) * frequence**(-5) * \
             np.exp(-1.25 * (Tp*frequence)**(-4)) * \
             gamma**(np.exp(-(Tp*frequence-1)**2 / (2 * sigma**2)))
-        return self.S
+        return Spec
     
 
-    def time_series(self, time_s:np.array, frequence:np.array):
+    def time_series(self, Spec: np.array, frequence: np.array, time_s: np.array):
         frequence_step = frequence[1]-frequence[0]
         # 波高的幅值
-        amplititude = np.sqrt(2 * self.S * frequence_step)  # 一维数组
+        amplititude = np.sqrt(2 * Spec * frequence_step)  # 一维数组
         # 波浪分量的数量
         wave_num = len(frequence)
         # 相位
@@ -57,11 +57,11 @@ class class_wave:
             wave_componant[i] = amplititude[i] * np.cos(omega[i]*time_s + phase[i])
 
         # 波浪=分量之和
-        self.series = np.sum(wave_componant, axis=0)
-        return self.series
+        series = np.sum(wave_componant, axis=0)
+        return series
         
-    def draw_spectra(self, frequence):
-        plt.plot(frequence, self.S)
+    def draw_spectra(self, frequence: np.array, Spec: np.array):
+        plt.plot(frequence, Spec)
         plt.xlabel('Frequence (Hz)')
         plt.ylabel('PSD (m**2*s)')
         plt.grid(True, which='major',axis='both')
@@ -69,8 +69,8 @@ class class_wave:
         plt.xlim([0, max(frequence)])
         plt.show()
 
-    def draw_series(self, time_s):
-        plt.plot(time_s, self.series)
+    def draw_series(self, time_s: np.array, series: np.array):
+        plt.plot(time_s, series)
         plt.xlabel('Time (s)')
         plt.ylabel('Wave height (m)')
         plt.grid(True, which='major',axis='both')
@@ -86,9 +86,9 @@ if __name__ == "__main__":
     Tp = 5
     gamma = 3.3
     # 波浪谱频率范围
-    frequence_length = 2
+    frequence_max = 2
     frequence_step = 0.0001
-    f = np.arange(frequence_step, frequence_length, frequence_step)
+    f = np.arange(frequence_step, frequence_max, frequence_step)
     # 时域时间
     time_length = 3600
     time_step = 1
@@ -97,13 +97,13 @@ if __name__ == "__main__":
     # 创建波浪对象
     wave = class_wave(Hs, Tp, gamma)
     # 创建jonswap谱
-    S = wave.jonswap(f)
+    wave_S = wave.jonswap(f)
     # 展示波浪谱
-    wave.draw_spectra(f)
+    wave.draw_spectra(f, wave_S)
     # 波浪时间序列
-    wave_series = wave.time_series(t_series, f)
+    wave_series = wave.time_series(wave_S, f, t_series)
     # 绘制时间序列
-    wave.draw_series(t_series)
+    wave.draw_series(t_series, wave_series)
 
 
 
