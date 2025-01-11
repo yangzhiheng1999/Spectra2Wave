@@ -9,6 +9,7 @@ python环境3.11.5
 References:
 [1] Mazzaretto O M, Menéndez M, Lobeto H. A global evaluation of the JONSWAP spectra suitability on coastal areas[J]. Ocean Engineering, 2022, 266: 112756.
 [2] https://ww2.mathworks.cn/matlabcentral/answers/58194-how-to-generate-a-time-signal-from-spectrum * 主要参考matlab代码
+[2] https://ww2.mathworks.cn/matlabcentral/answers/58194-how-to-generate-a-time-signal-from-spectrum * 主要参考matlab代码
 [3] Goda Y. Random seas and design of maritime structures[M]. World scientific, 2010.
 
 '''
@@ -48,10 +49,12 @@ class class_wave:
         wave_num = len(frequence)
         # 相位
         phase = np.random.rand(wave_num) * 2 * np.pi    # 一维数组
+        phase = np.random.rand(wave_num) * 2 * np.pi    # 一维数组
         # 圆频率
-        omega = frequence * 2 * np.pi   # 一维数组
+        omega = frequence * 2 * np.pi   # 一维数组   # 一维数组
 
         # 波浪分量
+        wave_componant = [[] for _ in range(wave_num)]  # 二维数组，每一行是一个波浪分量，每一列是一个时刻
         wave_componant = [[] for _ in range(wave_num)]  # 二维数组，每一行是一个波浪分量，每一列是一个时刻
         for i in range(wave_num):
             wave_componant[i] = amplititude[i] * np.cos(omega[i]*time_s + phase[i])
@@ -90,6 +93,8 @@ if __name__ == "__main__":
     frequence_step = 0.0001
     f = np.arange(frequence_step, frequence_max, frequence_step)
     # 时域时间
+    time_length = 3600
+    time_step = 1
     time_length = 3600
     time_step = 1
     t_series = np.arange(0, time_length, time_step)
