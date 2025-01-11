@@ -41,7 +41,7 @@ class class_wave:
         return Spec
     
 
-    def time_series(self, Spec: np.array, frequence: np.array, time_s: np.array):
+    def spectra2wave(self, Spec: np.array, frequence: np.array, time_s: np.array):
         frequence_step = frequence[1]-frequence[0]
         # 波高的幅值
         amplititude = np.sqrt(2 * Spec * frequence_step)  # 一维数组
@@ -61,7 +61,33 @@ class class_wave:
 
         # 波浪=分量之和
         series = np.sum(wave_componant, axis=0)
+        
         return series
+    
+    def wave2spectra(self, wave_series, smooth_sample = 20):
+        # 计算幅值
+        amplititude = np.fft.fft(wave_series)
+        # 计算幅值对应频率（自动划分）
+        frequence = abs(np.fft.fftfreq(len(wave_series)))
+        # 计算频率步长
+        frequence_step = frequence[1] - frequence[0]
+        # 计算功率谱
+        Spec = amplititude.real**2 / 2 * frequence_step *2*np.pi
+        
+        # 谱平滑
+        window_size = len(amplititude)//smooth_sample
+        Spec_smooth = []
+        for i in range(len(Spec)):
+            # 计算滑动窗口的起始和结束索引
+            start = max(0, i - window_size // 2)
+            end = min(len(Spec), i + window_size // 2 + 1)
+
+            # 计算滑动窗口内数据的平均值
+            window_data = Spec[start:end]
+            window_mean = sum(window_data) / len(window_data)
+            Spec_smooth.append(window_mean)
+            
+        return Spec_smooth, frequence
         
     def draw_spectra(self, frequence: np.array, Spec: np.array):
         plt.plot(frequence, Spec)
@@ -89,12 +115,10 @@ if __name__ == "__main__":
     Tp = 5
     gamma = 3.3
     # 波浪谱频率范围
-    frequence_max = 2
+    frequence_max = 1/Tp * 3
     frequence_step = 0.0001
     f = np.arange(frequence_step, frequence_max, frequence_step)
     # 时域时间
-    time_length = 3600
-    time_step = 1
     time_length = 3600
     time_step = 1
     t_series = np.arange(0, time_length, time_step)
@@ -106,9 +130,24 @@ if __name__ == "__main__":
     # 展示波浪谱
     wave.draw_spectra(f, wave_S)
     # 波浪时间序列
-    wave_series = wave.time_series(wave_S, f, t_series)
+    wave_series = wave.spectra2wave(wave_S, f, t_series)
     # 绘制时间序列
     wave.draw_series(t_series, wave_series)
+    
+    # 波浪序列转化为波浪谱
+    Spectrum, freqs = wave.wave2spectra(wave_series, smooth_sample=150)
+    # 展示波浪谱
+    wave.draw_spectra(freqs, Spectrum)
+    # 比较理论jonswap谱和转化谱
+    plt.plot(f, wave_S, 'b--')
+    plt.plot(freqs, Spectrum, 'r-')
+    plt.xlabel('Frequence (Hz)')
+    plt.ylabel('Wave spectra density (m**2*s)')
+    plt.legend(['Theoretical', 'Empirical'])
+    plt.grid(True, which='major',axis='both')
+    plt.tick_params(which='both', direction='in')  # 设置主刻度和次刻度的方向为内向
+    plt.show()
+    
 
 
 
