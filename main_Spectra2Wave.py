@@ -9,7 +9,6 @@ python环境3.11.5
 References:
 [1] Mazzaretto O M, Menéndez M, Lobeto H. A global evaluation of the JONSWAP spectra suitability on coastal areas[J]. Ocean Engineering, 2022, 266: 112756.
 [2] https://ww2.mathworks.cn/matlabcentral/answers/58194-how-to-generate-a-time-signal-from-spectrum * 主要参考matlab代码
-[2] https://ww2.mathworks.cn/matlabcentral/answers/58194-how-to-generate-a-time-signal-from-spectrum * 主要参考matlab代码
 [3] Goda Y. Random seas and design of maritime structures[M]. World scientific, 2010.
 
 '''
@@ -64,15 +63,16 @@ class class_wave:
         
         return series
     
-    def wave2spectra(self, wave_series, smooth_sample = 20):
+    def wave2spectra(self, time_series, wave_series, smooth_sample = 20):
         # 计算幅值
         amplititude = np.fft.fft(wave_series)
         # 计算幅值对应频率（自动划分）
+        time_step = time_series[1] - time_series[0]
         frequence = abs(np.fft.fftfreq(len(wave_series)))
         # 计算频率步长
         frequence_step = frequence[1] - frequence[0]
         # 计算功率谱
-        Spec = amplititude.real**2 / 2 * frequence_step *2*np.pi
+        Spec = amplititude.real**2 / 2 * frequence_step*time_step *(2*np.pi)
         
         # 谱平滑
         window_size = len(amplititude)//smooth_sample
@@ -87,7 +87,7 @@ class class_wave:
             window_mean = sum(window_data) / len(window_data)
             Spec_smooth.append(window_mean)
             
-        return Spec_smooth, frequence
+        return Spec_smooth, frequence / time_step
         
     def draw_spectra(self, frequence: np.array, Spec: np.array):
         plt.plot(frequence, Spec)
@@ -111,8 +111,8 @@ class class_wave:
 
 if __name__ == "__main__":
     # 波浪谱参数
-    Hs = 2
-    Tp = 5
+    Hs = 3
+    Tp = 10
     gamma = 3.3
     # 波浪谱频率范围
     frequence_max = 1/Tp * 3
@@ -128,22 +128,22 @@ if __name__ == "__main__":
     # 创建jonswap谱
     wave_S = wave.jonswap(f)
     # 展示波浪谱
-    wave.draw_spectra(f, wave_S)
+    #wave.draw_spectra(f, wave_S)
     # 波浪时间序列
     wave_series = wave.spectra2wave(wave_S, f, t_series)
     # 绘制时间序列
-    wave.draw_series(t_series, wave_series)
+    #wave.draw_series(t_series, wave_series)
     
     # 波浪序列转化为波浪谱
-    Spectrum, freqs = wave.wave2spectra(wave_series, smooth_sample=150)
+    Spectrum, freqs = wave.wave2spectra(t_series, wave_series, smooth_sample=200)
     # 展示波浪谱
-    wave.draw_spectra(freqs, Spectrum)
+    #wave.draw_spectra(freqs, Spectrum)
     # 比较理论jonswap谱和转化谱
-    plt.plot(f, wave_S, 'b--')
     plt.plot(freqs, Spectrum, 'r-')
+    plt.plot(f, wave_S, 'b--')
     plt.xlabel('Frequence (Hz)')
     plt.ylabel('Wave spectra density (m**2*s)')
-    plt.legend(['Theoretical', 'Empirical'])
+    plt.legend(['Empirical', 'Theoretical'])
     plt.grid(True, which='major',axis='both')
     plt.tick_params(which='both', direction='in')  # 设置主刻度和次刻度的方向为内向
     plt.show()
