@@ -67,9 +67,9 @@ class class_wave:
         # 计算幅值
         amplititude = np.fft.fft(wave_series)
         # 计算幅值对应频率（自动划分）
-        time_step = time_series[1] - time_series[0]
         frequence = abs(np.fft.fftfreq(len(wave_series)))
         # 计算频率步长
+        time_step = time_series[1] - time_series[0]
         frequence_step = frequence[1] - frequence[0]
         # 计算功率谱
         Spec = amplititude.real**2 / 2 * frequence_step*time_step *(2*np.pi)
@@ -111,16 +111,16 @@ class class_wave:
 
 if __name__ == "__main__":
     # 波浪谱参数
-    Hs = 3
-    Tp = 10
+    Hs = 1
+    Tp = 5
     gamma = 3.3
     # 波浪谱频率范围
     frequence_max = 1/Tp * 3
     frequence_step = 0.0001
     f = np.arange(frequence_step, frequence_max, frequence_step)
     # 时域时间
-    time_length = 3600
-    time_step = 1
+    time_length = 1800
+    time_step = 0.5
     t_series = np.arange(0, time_length, time_step)
 
     # 创建波浪对象
